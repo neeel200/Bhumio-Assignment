@@ -1,0 +1,19 @@
+version: '3'
+services:
+  db:
+    image: postgres
+    restart: always
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    ports:
+      - 5433:5432
+    environment:
+      - POSTGRES_DB=NewsLetter
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Anubhav@6263626091  
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+    - 8010:8080
