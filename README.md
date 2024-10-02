@@ -7,10 +7,9 @@
 
 - Current Implementation:
   1. Fetched content from RSS feeds and compared it with the existing RSS entries in the database (stored in the RssEntries table).
-  2. Filtered out new RSS entries and stored them in the database.
-  3. Retrieved all subscribers from the Subscriber table and sent email updates to them with the new content.
+  2. Filtered out new RSS entries with custom logic and stored them in the database.
+  3. Retrieved all subscribers from the Subscriber table and sent email updates to them via using gmail smtp client with the new content.
   4. Automated the process using a Cron Job, scheduled to run every day at 8 AM, as per the task requirements in the assignment.
-  5. Tried to understand the codebase.
 
 ![alt text](image.png)
 
