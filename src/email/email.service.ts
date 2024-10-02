@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class EmailService {
+    private readonly logger = new Logger(EmailService.name);
     constructor(private readonly mailerService: MailerService) { }
 
     async sendEmail(to: string, subject: string, text: string) {
@@ -17,7 +18,7 @@ export class EmailService {
                     font-family: Arial, sans-serif;
                     line-height: 1.6;
                     color: #333;
-                }
+                } 
                 .container {
                     padding: 20px;
                     border: 1px solid #ddd;
@@ -61,6 +62,9 @@ export class EmailService {
             subject,
             html: emailTemplate,
         });
+        this.logger.debug(`E-mail sent to ${to} !!`)
+
+        
     }
 
 }
