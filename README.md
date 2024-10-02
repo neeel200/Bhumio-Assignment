@@ -1,5 +1,4 @@
 <p>
-Bhumio-Task:-
 
 - Current Implementation:
   1. Fetched content from RSS feeds and compared it with the existing RSS entries in the database (stored in the RssEntries table).
@@ -7,6 +6,8 @@ Bhumio-Task:-
   3. Retrieved all subscribers from the Subscriber table and sent email updates to them with the new content.
   4. Automated the process using a Cron Job, scheduled to run every day at 8 AM, as per the task requirements in the assignment.
   5. Tried to understand the codebase.
+
+![alt text](image.png)
 
 - Potential Improvement:
   An alternative approach could involve organizing RSS feeds and subscriber data more efficiently by utilizing the List, Organization, and Campaign entities:
@@ -17,5 +18,3 @@ Bhumio-Task:-
 
 
 </p>
-
-![alt text](image.png)
