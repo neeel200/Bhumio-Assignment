@@ -19,6 +19,7 @@ import { EmailModule } from './email/email.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TasksModule } from './tasks/task.module';
 import { ConfigModule } from '@nestjs/config';
+import { RssEntry } from './campaigns/entities/rssEntries.entity';
 @Global()
 @Module({
   imports: [
@@ -29,7 +30,7 @@ import { ConfigModule } from '@nestjs/config';
       username: 'postgres',
       password: 'Anubhav@6263626091',
       database: 'NewsLetter',
-      entities: [Campaign, ClickStat, List, Organization, Subscriber, User],
+      entities: [Campaign, ClickStat, List, Organization, Subscriber, User, RssEntry],
       synchronize: true,
     }),
     ConfigModule.forRoot({
@@ -38,7 +39,6 @@ import { ConfigModule } from '@nestjs/config';
     OrganizationsModule,
     UserModule,
     SubscribersModule,
-
     ListsModule,
     CampaignsModule,
     ClickStatsModule,

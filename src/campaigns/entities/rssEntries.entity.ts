@@ -11,10 +11,7 @@ export class RssEntry {
     @Column({ length: 255, unique: true }) 
     link: string; 
 
-    @CreateDateColumn()
+    @CreateDateColumn({nullable:true})
     createdAt: Date; 
-
-    @Column()
-    rssUrl:string 
     
 }

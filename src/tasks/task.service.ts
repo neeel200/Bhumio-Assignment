@@ -3,90 +3,76 @@ import { Cron } from '@nestjs/schedule';
 import { EmailService } from '../email/email.service';
 import { InjectRepository, } from '@nestjs/typeorm';
 import { Repository } from 'typeorm'
-import { Campaign } from 'src/campaigns/entities/campaign.entity';
-import { Organization } from 'src/organizations/entities/organization.entity';
-import Parser from "rss-parser"
+import * as Parser from 'rss-parser';
 import { RssEntry } from "src/campaigns/entities/rssEntries.entity"
+import { Subscriber } from 'src/subscribers/entities/subscriber.entity';
+
 @Injectable()
 export class TasksService {
-    private parser : Parser = new Parser();
+    private parser: Parser = new Parser();
 
     constructor(
         private readonly mailService: EmailService,
-        @InjectRepository(Campaign)
-        private readonly campaignRepo: Repository<Campaign>,
-        @InjectRepository(Organization) private readonly organizationRepo: Repository<Organization>,
+        @InjectRepository(Subscriber)
+        private readonly subscriberRepo: Repository<Subscriber>,
         @InjectRepository(RssEntry) private readonly rssEntryRepository: Repository<RssEntry>
     ) { }
-    
+
     private readonly logger = new Logger(TasksService.name);
 
-    @Cron('0 1-6 * * *')
+    @Cron('0 8 * * *') // Every day at 8 AM
     async handleCron() {
-        this.logger.debug('Called every day');
+        this.logger.debug('Cron job started: Fetching RSS feeds and sending emails');
 
-        //fetch RSS campaigns from campaignRepository
-        const rssCampaign = await this.campaignRepo.findOne({
-            where: { subject: "RSS CAMPAIGN" },
-            relations: ["organization"],
-        })
-        if (!rssCampaign) {
-            this.logger.warn("No RSS CAMPAIGN found !");
-        }
-
-        //get the org related to this campaign
-        const organization = rssCampaign.organization;
-
-        //dummy rss feeds for now 
+        // RSS feeds to fetch
         const rssFeeds = [
-            'https://example.com/rss-feed', 
-            'https://another-example.com/rss'
+            'https://reddit.com/.rss',
+            'https://gamerant.com/feed/'
         ];
 
-        //fetch the rss feed 
-        const newContent = await this.fetchNewContentFromRssFeed(rssFeeds);
+        // Fetch new content from the RSS feeds
+        const newEntries = await this.fetchNewContentFromRssFeed(rssFeeds);
 
-        //get subs from the orgs
+        // Filter new entries
+        const todayEntries = await this.filterEntriesByToday(newEntries);
 
-        const subscribers = await this.organizationRepo.createQueryBuilder("organization")
-            .relation(Organization, "subscribers")
-            .of(organization.id)
-            .loadMany();
+        // Fetch all subscribers 
+        const subscribers = await this.fetchSubscribers();
 
-        //send email to all subscribers with new content
+        // Send emails to all subscribers with today's filtered content
         for (const subscriber of subscribers) {
+
             await this.mailService.sendEmail(
                 subscriber.email,
-                `New updates from ${organization.name}`,
-                `New content available: ${newContent}`
-            )
+                `New updates for today `,
+                `Today's content: ${todayEntries.map(entry => entry.link).join(', ')}`
+            );
         }
     }
 
     async fetchNewContentFromRssFeed(rssFeeds: string[]) {
 
+        // fetch the RSS feeds and aggregate them and return them
+        const allEntries: any[] = [];
+
         for (const rssUrl of rssFeeds) {
             try {
                 const feed = await this.parser.parseURL(rssUrl);
-                const newEntries = await this.checkForNewEntries(feed.items);
-
-                if (newEntries.length > 0) {
-                    this.logger.debug(`Found ${newEntries.length} new entries in ${rssUrl}`);
-                    // Process new entries, e.g., send emails to subscribers
-                } else {
-                    this.logger.debug(`No new entries in ${rssUrl}`);
-                }
+                allEntries.push(...feed.items);
+                this.logger.debug(`Fetched ${feed.items.length} entries from ${rssUrl}`);
             } catch (error) {
                 this.logger.error(`Error fetching RSS feed from ${rssUrl}: ${error.message}`);
             }
         }
+
+        return allEntries;
     }
 
+    private async filterEntriesByToday(items: any[]): Promise<any[]> {
 
-    private async checkForNewEntries(items: any[]): Promise<any[]> {
         // Fetch existing entries from the database
         const existingEntries = await this.rssEntryRepository.find();
-        const existingLinks = new Set(existingEntries.map(entry => entry.link)); // Create a set of existing links
+        const existingLinks = new Set(existingEntries.map(entry =>  entry.link )); // Create a set of existing links
 
         // Filter out new entries
         const newEntries = items.filter(item => !existingLinks.has(item.link));
@@ -98,10 +84,16 @@ export class TasksService {
                     title: entry.title,
                     link: entry.link
                 });
-                await this.rssEntryRepository.save(newEntry); // Save new entry to the database
+                await this.rssEntryRepository.save(newEntry);
             })
         );
 
-        return newEntries; // Return new entries to process further
+        return newEntries;
+    }
+
+    private async fetchSubscribers(): Promise<Subscriber[]> {
+        return await this.subscriberRepo.find();
     }
 }
+
+

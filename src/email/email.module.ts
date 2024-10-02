@@ -9,12 +9,10 @@ import {ConfigService} from '@nestjs/config';
         MailerModule.forRootAsync({
           useFactory: (configService: ConfigService) => ({
             transport: {
-              // For relay SMTP server set the host to smtp-relay.gmail.com
-              // and for Gmail STMO server set it to smtp.gmail.com
               host: configService.get('MAIL_HOST'),
               // For SSL and TLS connection
-              secure: true,
-              port: 465,
+              secure: false,
+              port: 587,
               auth: {
                 // Account gmail address
                 user: configService.get('MAIL_USER'),
