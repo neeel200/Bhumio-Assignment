@@ -1,4 +1,8 @@
 <p>
+- start the app:
+  - for testing cron, i have set it for 8 AM everyday,  change to every min  @Cron('* * * * *') in src/task/task.service.ts.
+  - run -> npm i && docker compose up -d && npm run start:dev.
+
 
 - Current Implementation:
   1. Fetched content from RSS feeds and compared it with the existing RSS entries in the database (stored in the RssEntries table).
